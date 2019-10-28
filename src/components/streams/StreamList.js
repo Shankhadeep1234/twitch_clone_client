@@ -1,5 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
+import { Link } from "react-router-dom";
 import { fetchStreams } from "../../actions";
 
 class StreamList extends React.Component {
@@ -7,13 +8,34 @@ class StreamList extends React.Component {
     this.props.fetchStreams();
   }
 
+  renderAdmin(stream) {
+    if (stream.userId === this.props.currentUserId) {
+      return (
+        <div className="right floated content">
+          <Link className="ui button primary" to={`/streams/edit/${stream.id}`}>
+            EDIT
+          </Link>
+          <Link
+            className="ui button negative"
+            to={`/streams/delete/${stream.id}`}
+          >
+            DELETE
+          </Link>
+        </div>
+      );
+    }
+  }
+
   renderList() {
     return this.props.streams.map(stream => {
       return (
         <div className="item" key={stream.id}>
-          <i className="large middle aligned icon video icon" />
+          {this.renderAdmin(stream)}
+          <i className="large middle aligned icon video"></i>
           <div className="content">
-            {stream.title}
+            <div className="header">
+              <Link to={`/streams/${stream.id}`}>{stream.title}</Link>
+            </div>
             <div className="description">{stream.description}</div>
           </div>
         </div>
@@ -21,18 +43,35 @@ class StreamList extends React.Component {
     });
   }
 
+  renderCreate() {
+    if (this.props.isSignedIn) {
+      return (
+        <div style={{ textAlign: "right" }}>
+          <Link to="/streams/new">
+            <button className="ui button primary">Create Stream</button>
+          </Link>
+        </div>
+      );
+    }
+  }
+
   render() {
     return (
       <div>
-        <h2>Available Streams</h2>
+        <h2>Streams</h2>
         <div className="ui celled list">{this.renderList()}</div>
+        {this.renderCreate()}
       </div>
     );
   }
 }
 
 const mapStateToProps = state => {
-  return { streams: Object.values(state.streams) };
+  return {
+    currentUserId: state.auth.userId,
+    isSignedIn: state.auth.isSignedIn,
+    streams: Object.values(state.streams)
+  };
 };
 
 export default connect(
